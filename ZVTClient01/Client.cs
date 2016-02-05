@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using Protokoll;
+
+
 
 namespace ZVTClient01
 {
@@ -21,30 +24,10 @@ namespace ZVTClient01
         byte[] SendBuffer;
         byte[] RecvBuffer;
 
-        private struct ZVTPacket
-        {
-            struct ControlField
-            {
-                struct Class
-                {
-                    int nibble1;
-                    int nibble2;
-                }
-                struct Instr
-                {
-                    int nibble1;
-                    int nibble2;
-                }
-            }
-            int Length;
-            struct DataBlock
-            {
-
-            }
-        }
+        ZVT.ClassCodes Codes;
 
         //Konstruktoren
-        public Client() : this("192.168.2.105", 8000)
+        public Client() : this("192.168.2.105", 20007)
         {
             //NOP
         }
@@ -57,6 +40,7 @@ namespace ZVTClient01
             ClientEp = new IPEndPoint(ServerIp, ServerPort);
             SendBuffer = new Byte[128];
             RecvBuffer = new Byte[128];
+            Codes = new ZVT.ClassCodes();
         }
 
         //Methoden
@@ -75,10 +59,12 @@ namespace ZVTClient01
         }
 
         //Bytes senden
-        public int Senden(string text)
+        public int Senden(int com)
         {
             try
             {
+                com--;  //Taste [1] -> Kommandos[0]
+                string text = Codes.Kommandos[com];
                 SendBuffer = Encoding.UTF8.GetBytes(text);
                 int anz_bytes = SocClient.Send(SendBuffer);
             }
@@ -98,9 +84,8 @@ namespace ZVTClient01
             {
                 string text;
                 int anz_bytes = SocClient.Receive(RecvBuffer, 128, SocketFlags.None);
-                Console.WriteLine("5) {0} Bytes empfangen", anz_bytes);
+                //Console.WriteLine("5) {0} Bytes empfangen", anz_bytes);
                 text = Encoding.UTF8.GetString(RecvBuffer);
-                Console.Write("7) ");
                 Console.WriteLine(text);
             }
             catch(Exception e)
