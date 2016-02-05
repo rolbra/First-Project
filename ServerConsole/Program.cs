@@ -14,14 +14,14 @@ namespace ServerConsole
             int rc;                                     //return-code für Fehlerabfrage
             string eingabe;                             //Benutzereingaben (Testzwecke)
 
-            ZVTServer01.Server Host = new Server();     //Objekt des Servers erstellen. Default Port 8000
+            ZVTServer01.Server Host = new Server("192.168.2.105", 20007);     //Objekt des Servers erstellen. Default Port 8000
 
 
             //--------------------Verbindung herstellen----------------------------------------------------
             rc = Host.Starten(3);                        //Host online setzen
             if (rc == 0)
             {
-                Console.WriteLine("1) Host online - " + Host.ServerInfo);
+                Console.WriteLine("Host online - " + Host.ServerInfo);
             }
             else if (rc == -1)
             {
@@ -35,58 +35,63 @@ namespace ServerConsole
             }
             //--------------------Verbindung herstellen-ENDE---------------------------------------------
 
-
-
-            //--------------------Warten auf Verbindungsanfrage------------------------------------------
-            rc = Host.Warten();
-            if(rc == 0)
+            while (Host.beenden == false)
             {
-                Console.WriteLine("2) Client hat Verbindung aufgenommen");
+
+                //--------------------Warten auf Verbindungsanfrage------------------------------------------
+                rc = Host.Warten();
+                if (rc == 0)
+                {
+                    Console.WriteLine("Client hat Verbindung aufgenommen");
+                }
+                else if (rc == -1)
+                {
+                    Console.WriteLine("Fehler bei Verbindungsaufbau");
+                    return -1;
+                }
+                //--------------------Warten auf Verbindungsanfrage-ENDE-------------------------------------
+
+
+
+                //--------------------Daten entgegennehmen------------------------------------------------
+                rc = Host.Empfangen();
+                if (rc == -1)
+                {
+                    Console.WriteLine("Fehler beim Empfang der Daten");
+                    return -1;
+                }
+                string text = Host.TextRecv[Host.indexRecv - 1];    //Ausgabe der empfangen Daten
+                Console.WriteLine(text);
+                //-------------------Daten entgegennehmen-ENDE-----------------------------------------------
+
+
+
+                //-------------------Parsen-----------------------------------------------------------------
+                //-------------------Parsen-ENDE------------------------------------------------------------
+
+
+                //--------------------Analysieren-----------------------------------------------------------
+                //--------------------Analysieren-ENDE------------------------------------------------------
+
+
+                //--------------------Funktion ausführen---------------------------------------------------
+                //--------------------Funktion ausführen--ENDE---------------------------------------------
+
+
+                //--------------------Senden------------------------------------------------------------
+                rc = Host.Senden();
+                if (rc == -1)
+                {
+                    Console.WriteLine("Fehler beim Senden zum Client");
+                    return -1;
+                }
+                //--------------------Senden---ENDE-----------------------------------------------------
             }
-            else if(rc == -1)
-            {
-                Console.WriteLine("Fehler bei Verbindungsaufbau");
-                return -1;
-            }
-            //--------------------Warten auf Verbindungsanfrage-ENDE-------------------------------------
-
-
-
-            //--------------------Daten entgegennehmen------------------------------------------------
-            rc = Host.Empfangen();
-            if(rc == -1)
-            {
-                Console.WriteLine("Fehler beim Empfang der Daten");
-            }
-            //-------------------Daten entgegennehmen-ENDE-----------------------------------------------
-
-
-
-            //-------------------Parsen-----------------------------------------------------------------
-            //-------------------Parsen-ENDE------------------------------------------------------------
-
-
-            //--------------------Analysieren-----------------------------------------------------------
-            //--------------------Analysieren-ENDE------------------------------------------------------
-
-
-            //--------------------Funktion ausführen---------------------------------------------------
-            //--------------------Funktion ausführen--ENDE---------------------------------------------
-
-
-            //--------------------Senden------------------------------------------------------------
-            rc = Host.Senden();
-            if(rc == -1)
-            {
-                Console.WriteLine("Fehler beim Senden zum Client");
-                return -1;
-            }
-            //--------------------Senden---ENDE-----------------------------------------------------
 
 
             //--------------------Aufräumen-------------------------------------------------------------
             rc = Host.Beenden();
-            if (rc == 0) { Console.WriteLine("7) Host offline"); }
+            if (rc == 0) { Console.WriteLine("Host offline"); }
             else if(rc == -1) { Console.WriteLine("Host nicht ordnungsgemäß beendet"); }
             //--------------------Aufräumen--ENDE-------------------------------------------------------
 
